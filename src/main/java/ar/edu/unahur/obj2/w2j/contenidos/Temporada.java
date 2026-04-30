@@ -3,6 +3,10 @@ package ar.edu.unahur.obj2.w2j.contenidos;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO: contenidos/Temporada
+// #26- Aplicar encapsulamiento: copia defensiva en constructor
+// #27- Evitar exposición: getEpisodios() devuelve copia (List.copyOf)
+
 public class Temporada {
     private final Integer numero;
     private List<Episodio> episodios = new ArrayList<>();

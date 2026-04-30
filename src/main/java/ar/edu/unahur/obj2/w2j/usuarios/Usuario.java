@@ -4,23 +4,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ar.edu.unahur.obj2.w2j.contenidos.Contenido;
-import ar.edu.unahur.obj2.w2j.planes.IPlan;
+import ar.edu.unahur.obj2.w2j.planes.PlanStrategy;
 import ar.edu.unahur.obj2.w2j.planes.PlanBasico;
 
+// TODO: usuarios/Usuario
+// #21- Cambiar tipo del atributo: IPlan → PlanStrategy
+// #22- Renombrar atributo: plan → estrategia
+// #23- Renombrar getters/setters: getPlan/setPlan → getEstrategia/setEstrategia
+// #24- Mantener delegación: estrategia.costoPlan(this)
+
 public class Usuario {
-    private IPlan plan = new PlanBasico(10);
+    private PlanStrategy estrategia = new PlanBasico(10);
     private List<Contenido> contenidos = new ArrayList<>();
 
-    public Usuario(IPlan plan, List<Contenido> contenidos) {
-        this.plan = plan;
+    public Usuario(PlanStrategy estrategia, List<Contenido> contenidos) {
+        this.estrategia = estrategia;
         this.contenidos = contenidos;
     }
 
     public Usuario() {
     }
 
-    public Usuario(IPlan plan) {
-        this.plan = plan;
+    public Usuario(PlanStrategy estrategia) {
+        this.estrategia = estrategia;
     }
 
     public List<Contenido> getContenidos() {
@@ -31,12 +37,12 @@ public class Usuario {
         contenidos.add(contenido);
     }
 
-    public IPlan getPlan() {
-        return plan;
+    public PlanStrategy getEstrategia() {
+        return estrategia;
     }
 
-    public void setPlan(IPlan plan) {
-        this.plan = plan;
+    public void setEstrategia(PlanStrategy estrategia) {
+        this.estrategia = estrategia;
     }
 
     public void limpiarContenidos() {
@@ -44,6 +50,6 @@ public class Usuario {
     }
 
     public Double costoMensual() {
-        return plan.costoPlan(this);
+        return estrategia.costoPlan(this);
     }
 }

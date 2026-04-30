@@ -5,6 +5,10 @@ import java.util.List;
 
 import ar.edu.unahur.obj2.w2j.usuarios.Usuario;
 
+// TODO: Plataforma
+// #30- Mantener Singleton
+// #31- Reinterpretar: caso real de instancia única del sistema
+
 public class Plataforma {
 
     private static Plataforma instance = new Plataforma();

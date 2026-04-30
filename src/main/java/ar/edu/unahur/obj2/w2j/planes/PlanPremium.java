@@ -2,7 +2,11 @@ package ar.edu.unahur.obj2.w2j.planes;
 
 import ar.edu.unahur.obj2.w2j.usuarios.Usuario;
 
-public class PlanPremium implements IPlan {
+// TODO: planes/PlanPremium
+//#19- Cambiar implementación: implements IPlan → implements PlanStrategy
+// #20- Sin cambios en lógica
+
+public class PlanPremium implements PlanStrategy {
 
     private Double costoPlan;
 

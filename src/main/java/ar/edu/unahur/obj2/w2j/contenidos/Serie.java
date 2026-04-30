@@ -3,6 +3,9 @@ package ar.edu.unahur.obj2.w2j.contenidos;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO: contenidos/Serie
+// #25- Corregir cálculo: usar flatMap para promediar TODOS los episodios
+
 public class Serie extends Contenido {
 
     private List<Temporada> temporadas = new ArrayList<>();

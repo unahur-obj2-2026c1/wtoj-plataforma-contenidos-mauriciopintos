@@ -1,4 +1,6 @@
 
+# Excluir la carpeta .github/
+.github/
 # Excluir la carpeta .vscode/ (configuraciones de VS Code)
 .vscode/
 
@@ -30,3 +32,9 @@ Thumbs.db
 # Excluir archivos generados por el sistema operativo
 *.swp
 *.swo
+
+# Excluir archivos pedagogicos
+Refactor.md
+GuiaClase.md
+GuiaRefactor.md
+CheckList-Cambios.md
