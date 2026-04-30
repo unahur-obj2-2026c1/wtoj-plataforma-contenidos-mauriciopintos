@@ -273,28 +273,52 @@ public interface IPlan {
 // Archivo: .\src\main\java\ar\edu\unahur\obj2\w2j\planes\PlanBasico.java
 package ar.edu.unahur.obj2.w2j.planes;
 
-import java.util.List;
+public class PlanBasico extends PlanConLimite {
+
+    public PlanBasico(Integer limite) {
+        super(limite);
+    }
+
+    @Override
+    protected Double aplicarAjuste(Double total) {
+        return total; // sin cambios
+    }
+}
+/*------------------------------------------------------------------------------------------*/
+
+// Archivo: .\src\main\java\ar\edu\unahur\obj2\w2j\planes\PlanConLimite.java
+package ar.edu.unahur.obj2.w2j.planes;
 
 import ar.edu.unahur.obj2.w2j.contenidos.Contenido;
 import ar.edu.unahur.obj2.w2j.usuarios.Usuario;
 
-public class PlanBasico  implements IPlan{
-    private Integer limite;
-    private Double costoBase = 5.0;
+public abstract class PlanConLimite implements IPlan {
 
-    public PlanBasico(Integer limite) {
+    protected Integer limite;
+    protected static Double costoBase = 5.0;
+
+    public PlanConLimite(Integer limite) {
         this.limite = limite;
     }
 
     @Override
     public Double costoPlan(Usuario usuario) {
-        List<Contenido> contenidos = usuario.getContenidos();
-        Double costoExcedentes = contenidos.stream()
-            .skip(limite) // saltea los primeros 'limite' elementos del stream (los incluidos en el plan) y deja solo los excedentes
-            .mapToDouble(Contenido::getCostoBase) // esta es la forma moderna del closure
-            .sum();
 
-        return this.costoBase + costoExcedentes;
+        Double costoExcedentes = usuario.getContenidos().stream()
+                .skip(limite)
+                .mapToDouble(Contenido::getCostoBase)
+                .sum();
+
+        Double total = costoBase + costoExcedentes;
+
+        return aplicarAjuste(total);
+    }
+
+    // Template Method
+    protected abstract Double aplicarAjuste(Double total);
+
+    public static void setCostoBase(Double nuevoCosto) {
+        costoBase = nuevoCosto;
     }
 }
 /*------------------------------------------------------------------------------------------*/
@@ -302,29 +326,17 @@ public class PlanBasico  implements IPlan{
 // Archivo: .\src\main\java\ar\edu\unahur\obj2\w2j\planes\PlanFamiliar.java
 package ar.edu.unahur.obj2.w2j.planes;
 
-import java.util.List;
+public class PlanFamiliar extends PlanConLimite {
 
-import ar.edu.unahur.obj2.w2j.contenidos.Contenido;
-import ar.edu.unahur.obj2.w2j.usuarios.Usuario;
-
-public class PlanFamiliar implements IPlan {
-    private Integer limite;
-    private Double costoBase = 5.0;
-    private Double descuento = 0.15;
+    private static final Double descuento = 0.15;
 
     public PlanFamiliar(Integer limite) {
-        this.limite = limite;
+        super(limite);
     }
 
     @Override
-    public Double costoPlan(Usuario usuario) {
-        List<Contenido> contenidos = usuario.getContenidos();
-        Double costoExcedentes = contenidos.stream()
-            .skip(limite) // saltea los primeros 'limite' elementos del stream (los incluidos en el plan) y deja solo los excedentes
-            .mapToDouble(Contenido::getCostoBase) // esta es la forma moderna del closure
-            .sum();
-
-        return (this.costoBase + costoExcedentes) * (1 - descuento);
+    protected Double aplicarAjuste(Double total) {
+        return total * (1 - descuento);
     }
 }
 /*------------------------------------------------------------------------------------------*/
@@ -399,6 +411,143 @@ public class Usuario {
     public Double costoMensual() {
         return plan.costoPlan(this);
     }
+}
+/*------------------------------------------------------------------------------------------*/
+
+// Archivo: .\src\test\java\ar\edu\unahur\obj2\w2j\PlataformaTest.java
+package ar.edu.unahur.obj2.w2j;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+
+import ar.edu.unahur.obj2.w2j.planes.PlanPremium;
+import ar.edu.unahur.obj2.w2j.usuarios.Usuario;
+
+public class PlataformaTest {
+    @Test
+    void dadaUnaPlataforma_cuandoTengoDosUsuarios_entoncesCalculaFacturacionTotal() {
+        Plataforma plataforma = Plataforma.getIntance();
+
+        Usuario u1 = new Usuario(new PlanPremium(10.0));
+        Usuario u2 = new Usuario(new PlanPremium(20.0));
+
+        plataforma.agregarUsuario(u1);
+        plataforma.agregarUsuario(u2);
+
+        assertEquals(30.0, plataforma.facturacionMensual());
+    }
+}
+/*------------------------------------------------------------------------------------------*/
+
+// Archivo: .\src\test\java\ar\edu\unahur\obj2\w2j\contenidos\ContenidoTest.java
+package ar.edu.unahur.obj2.w2j.contenidos;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+
+import ar.edu.unahur.obj2.w2j.planes.PlanBasico;
+import ar.edu.unahur.obj2.w2j.usuarios.Usuario;
+
+public class ContenidoTest {
+    @Test
+    void dadaUnaSerieConVariasTemporadas_cuandoCalculoCosto_entoncesPromediaTodosLosEpisodios() {
+        Serie serie = new Serie("Serie", 1.0);
+
+        Temporada t1 = new Temporada(1);
+        t1.agregarEpisodio(new Episodio("E1", 1, 10.0));
+        t1.agregarEpisodio(new Episodio("E2", 2, 10.0));
+
+        Temporada t2 = new Temporada(2);
+        t2.agregarEpisodio(new Episodio("E3", 1, 1.0));
+
+        serie.agregarTemporada(t1);
+        serie.agregarTemporada(t2);
+
+        assertEquals(8.0, serie.costo()); // 1 + promedio(10,10,1)
+    }
+
+    @Test
+    void dadoUnDocumental_cuandoCambioCanonIDRA_entoncesImpactaEnElCosto() {
+        IDRA.getInstance().setValor(2.0);
+
+        Documental doc = new Documental("Doc", 1.0);
+
+        assertEquals(3.0, doc.costo());
+    }
+
+    @Test
+    void dadoUnUsuarioConContenidos_cuandoLimpiaConsumo_entoncesQuedaSinContenidos() {
+        Usuario usuario = new Usuario(new PlanBasico(2));
+
+        usuario.verContenido(new Pelicula("P1", 2.0));
+
+        usuario.limpiarContenidos();
+
+        assertEquals(0, usuario.getContenidos().size());
+    }
+
+}
+/*------------------------------------------------------------------------------------------*/
+
+// Archivo: .\src\test\java\ar\edu\unahur\obj2\w2j\usuarios\UsuarioTest.java
+package ar.edu.unahur.obj2.w2j.usuarios;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+
+import ar.edu.unahur.obj2.w2j.contenidos.Pelicula;
+import ar.edu.unahur.obj2.w2j.planes.PlanBasico;
+import ar.edu.unahur.obj2.w2j.planes.PlanFamiliar;
+import ar.edu.unahur.obj2.w2j.planes.PlanPremium;
+
+public class UsuarioTest {
+    @Test
+    void dadoUnUsuarioConPlanBasico_cuandoNoSuperaElLimite_entoncesPagaSoloCostoFijo() {
+        Usuario usuario = new Usuario(new PlanBasico(3));
+
+        usuario.verContenido(new Pelicula("P1", 2.0));
+        usuario.verContenido(new Pelicula("P2", 3.0));
+
+        assertEquals(5.0, usuario.costoMensual());
+    }
+
+    @Test
+    void dadoUnUsuarioConPlanBasico_cuandoSuperaElLimite_entoncesPagaCostoFijoMasExcedentes() {
+        Usuario usuario = new Usuario(new PlanBasico(2));
+
+        usuario.verContenido(new Pelicula("P1", 2.0));
+        usuario.verContenido(new Pelicula("P2", 3.0));
+        usuario.verContenido(new Pelicula("P3", 4.0));
+
+        assertEquals(9.0, usuario.costoMensual()); // 5 + 4
+    }
+
+    @Test
+    void dadoUnUsuarioConPlanFamiliar_cuandoSuperaElLimite_entoncesAplicaDescuentoAlTotal() {
+        Usuario usuario = new Usuario(new PlanFamiliar(2));
+
+        usuario.verContenido(new Pelicula("P1", 2.0));
+        usuario.verContenido(new Pelicula("P2", 3.0));
+        usuario.verContenido(new Pelicula("P3", 4.0));
+
+        Double esperado = (5.0 + 4.0) * 0.85;
+
+        assertEquals(esperado, usuario.costoMensual());
+    }
+
+    @Test
+    void dadoUnUsuarioConPlanPremium_cuandoConsumeContenido_entoncesPagaSiempreMontoFijo() {
+        Usuario usuario = new Usuario(new PlanPremium(12.0));
+
+        usuario.verContenido(new Pelicula("P1", 2.0));
+        usuario.verContenido(new Pelicula("P2", 10.0));
+
+        assertEquals(12.0, usuario.costoMensual());
+    }
+
 }
 /*------------------------------------------------------------------------------------------*/
 
